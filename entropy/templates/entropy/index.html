@@ -1,0 +1,14 @@
+{% extends 'entropy/base.html' %}
+{% load static %}
+{% block body %}
+  <div class="row">
+    <div class='col-12 pt-5'>
+      <h2>Primer Finder</h2>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-12 pt-5 pb-5">
+      {% include 'entropy/partial_parameter_form.html' %}
+    </div>
+  </div>
+{% endblock body %}
