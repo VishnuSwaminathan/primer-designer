@@ -49,5 +49,5 @@ class PrimerFinderView(FormView):
                                                   omit_gc_clamp=form_data['filter_gc_clamp'],
                                                   max_edit_dist=form_data['max_edit_distance'],
                                                   outgroup=outgroup_file)
-
+        print(primerpairs)
         return render(self.request, 'entropy/index.html', {'primerpairs': primerpairs, 'action': self.action })
