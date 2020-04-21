@@ -1,0 +1,12 @@
+{% if primerpairs %}
+  {% for pair in primerpairs %}
+  <div class="row primer-pair">
+    <div class="col-6">
+      {{ pair.forward }}
+    </div>
+    <div class="col-6">
+      {{ pair.reverse }}
+    </div>
+  </div>
+  {% endfor %}
+{% endif %}

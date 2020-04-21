@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'entropy',
     'widget_tweaks',
-    'crispy_forms',
+#'crispy_forms',
 ]
 
 MIDDLEWARE = [

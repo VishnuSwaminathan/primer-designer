@@ -8,7 +8,11 @@
   </div>
   <div class="row">
     <div class="col-12 pt-5 pb-5">
-      {% include 'entropy/partial_parameter_form.html' %}
+      {% if primerpairs %}
+        {% include 'entropy/primer_results.html' %}
+      {% else %}
+        {% include 'entropy/partial_parameter_form.html' %}
+      {% endif %}
     </div>
   </div>
 {% endblock body %}

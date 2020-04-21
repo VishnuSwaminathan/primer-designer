@@ -8,21 +8,25 @@ import itertools as it
 from math import log
 from collections import Counter
 import Levenshtein as Lev
+import tempfile
 
 class SequenceAlignment():
-    def __init__(self, fasta_filename):
-        self.data = self._fasta_to_df(fasta_filename)
+    def __init__(self, fasta_file):
+        self.data = self._fasta_to_df(fasta_file)
 
     def _charwise_split(self, word):
         return [char for char in word]
 
-    def _fasta_to_df(self,filename):
-        fasta = SeqIO.parse(filename, "fasta")
+    def _fasta_to_df(self,file):
+        fasta = SeqIO.parse(file, "fasta")
         sample_data = []
         for seq in fasta:
             c = self._charwise_split(seq.seq)
             sample_data.append(c)
         return pd.DataFrame(sample_data)
+
+
+
 
 class Primer():
     def __init__(self, seq, pos, na_conc=None):
@@ -237,7 +241,7 @@ class PrimerFinder():
 
         return entropies
 
-    def _find_min_entropy_positions(self, entropies, show_plot=True):
+    def _find_min_entropy_positions(self, entropies, show_plot=False):
         #ent_vals = np.asarray([i[0] for i in entropies]).flatten()
         ent_vals = np.asarray([i[1][0] for i in entropies.items()]).flatten()
         peaks, _ = find_peaks(ent_vals * -1)
@@ -268,7 +272,7 @@ class PrimerFinder():
         primers = []
         for k in range(min_primer_length, max_primer_length):
             entropy_peaks = self._kmer_entropy(sequence_alignment.data, k)
-            primer_indices = self._find_min_entropy_positions(entropy_peaks, show_plot=True)
+            primer_indices = self._find_min_entropy_positions(entropy_peaks, show_plot=False)
             for i in primer_indices:
                 primer = Primer(seq=entropy_peaks[i][1], pos=i, na_conc=na_conc)
                 primers.append(primer)
@@ -323,4 +327,3 @@ class PrimerFinder():
             pairs = selected
 
         return pairs
-        

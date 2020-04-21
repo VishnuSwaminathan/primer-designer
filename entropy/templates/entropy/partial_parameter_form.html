@@ -1,6 +1,6 @@
 
 {% load widget_tweaks %}
-<form method="post">
+<form method="post" enctype="multipart/form-data">
   {% csrf_token %}
   {% for field in form %}
     <div class="form-group{% if field.errors %} has-error{% endif %}">
@@ -18,66 +18,3 @@
     <a href="#" class="btn btn-default">Cancel</a>
   </div>
 </form>
-
-
-<!--
-{% load crispy_forms_tags %}
-
-
-<form method="post" novalidate>
-  {% csrf_token %}
-  {{ form.msa|as_crispy_field }}
-  {{ form.msa_file|as_crispy_field }}
-  <div class="row">
-    <div class="col-3">
-      {{ form.min_primer_length|as_crispy_field }}
-    </div>
-    <div class="col-3">
-      {{ form.max_primer_length|as_crispy_field }}
-    </div>
-    <div class="col-3">
-      {{ form.amplicon_lower|as_crispy_field }}
-    </div>
-    <div class="col-3">
-      {{ form.amplicon_upper|as_crispy_field }}
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-2">
-      {{ form.na_conc|as_crispy_field }}
-    </div>
-    <div class="col-2">
-      {{ form.min_gc|as_crispy_field }}
-    </div>
-    <div class="col-2">
-      {{ form.max_gc|as_crispy_field }}
-    </div>
-    <div class="col-2">
-      {{ form.min_melting_temp|as_crispy_field }}
-    </div>
-    <div class="col-2">
-      {{ form.max_melting_temp|as_crispy_field }}
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-6">
-      {{ form.select_gc_clamp|as_crispy_field }}
-    </div>
-    <div class="col-6">
-      {{ form.omit_gc_clamp|as_crispy_field }}
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-6">
-      {{ form.max_degeneracy|as_crispy_field }}
-    </div>
-    <div class="col-6">
-      {{ form.max_edit_distance|as_crispy_field }}
-    </div>
-  </div>
-  {{ form.outgroup|as_crispy_field }}
-  {{ form.outgroup_file|as_crispy_field }}
-
-  <button type="submit" class="btn btn-secondary">Submit</button>
-</form>
--->
