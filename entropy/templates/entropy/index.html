@@ -1,17 +1,19 @@
 {% extends 'entropy/base.html' %}
 {% load static %}
 {% block body %}
-  <div class="row">
-    <div class='col-12 pt-5'>
-      <h2>Primer Finder</h2>
+  <div class='row justify-content-md-center'>
+    <div class='col-md-auto mx-auto'>
+      <h3 class='text-center display-4'>Primer Finder</h3>
     </div>
   </div>
   <div class="row">
-    <div class="col-12 pt-5 pb-5">
+    <div class="col-12">
       {% if primerpairs %}
         {% include 'entropy/primer_results.html' %}
       {% else %}
+      <div class="container">
         {% include 'entropy/partial_parameter_form.html' %}
+      </div>
       {% endif %}
     </div>
   </div>

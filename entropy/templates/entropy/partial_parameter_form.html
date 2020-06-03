@@ -4,8 +4,14 @@
   {% csrf_token %}
   {% for field in form %}
     <div class="form-group{% if field.errors %} has-error{% endif %}">
-      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-      {% render_field field class="form-control" %}
+      {% comment %}<label for="{{ field.id_for_label }}">{{ field.label }}</label>{% endcomment %}
+      <div class="input-group input-group-sm">   
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="basic-addon1">{{ field.label }}</span>
+          
+          {% render_field field class="form-control form-control-sm"  %}
+          </div>
+      </div>
       {% for error in field.errors %}
         <p class="help-block">{{ error }}</p>
       {% endfor %}
@@ -13,8 +19,8 @@
   {% endfor %}
   <div class="form-group">
     <button type="submit" class="btn btn-success">
-      <span class="glyphicon glyphicon-ok"></span> Save
+      <span class="glyphicon glyphicon-ok"></span> SUBMIT
     </button>
-    <a href="#" class="btn btn-default">Cancel</a>
+    {# <a href="#" class="btn btn-default">Cancel</a> #}
   </div>
 </form>
