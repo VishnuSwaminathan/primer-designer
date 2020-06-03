@@ -10,7 +10,7 @@ import io
 def index(request):
     return render(request, 'entropy/index.html', context={'form': ParameterForm()})
 """
-
+#
 class PrimerFinderView(FormView):
     template_name = "entropy/index.html"
     form_class = PrimerForm
