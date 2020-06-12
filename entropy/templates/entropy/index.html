@@ -10,9 +10,9 @@
     <div class="col-12">
       {% if primerpairs %}
         {% include 'entropy/primer_results.html' %}
-      {% else %}
+      {% elif not primepairs %}
       <div class="container">
-        {% include 'entropy/partial_parameter_form.html' %}
+        {% include 'entropy/errorReturn.html' %}
       </div>
       {% endif %}
     </div>

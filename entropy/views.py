@@ -4,7 +4,11 @@ from django.views.generic.edit import FormView
 from .forms import *
 from .primer_finder_classes import *
 import io
+import logging
+#import pdb; pdb.set_trace()
 
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
 
 """
 def index(request):
@@ -49,5 +53,19 @@ class PrimerFinderView(FormView):
                                                   omit_gc_clamp=form_data['filter_gc_clamp'],
                                                   max_edit_dist=form_data['max_edit_distance'],
                                                   outgroup=outgroup_file)
-        print(primerpairs)
-        return render(self.request, 'entropy/index.html', {'primerpairs': primerpairs, 'action': self.action })
+        
+        try: 
+            primepairs
+        except NameError: 
+            return render(self.request, 'entropy/erroReturn.html')
+        else:
+            return render(self.request, 'entropy/index.html', {'primerpairs': primerpairs, 'action': self.action })
+        #print(primerpairs)
+        #if primepairs is None:
+         #   return render(self.request, 'entropy/index.html', {'primerpairs': None, 'action': self.action })
+        #else:
+        #if primepairs:
+         #   return render(self.request, 'entropy/index.html', {'primerpairs': primerpairs, 'action': self.action })
+        #elif not primepairs:
+       #     return render(self.request, 'entropy/index.html')
+        #return render(self.request, 'entropy/index.html')

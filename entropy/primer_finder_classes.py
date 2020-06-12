@@ -276,6 +276,7 @@ class PrimerFinder():
             for i in primer_indices:
                 primer = Primer(seq=entropy_peaks[i][1], pos=i, na_conc=na_conc)
                 primers.append(primer)
+        print(primers)
         return primers
 
     def identify_pairs(self, primers,
@@ -325,5 +326,5 @@ class PrimerFinder():
                 if f_dist < max_edit_dist or r_dist < max_edit_dist:
                     selected.append(pair)
             pairs = selected
-
+        print(pairs)        
         return pairs
