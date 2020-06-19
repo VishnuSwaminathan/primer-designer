@@ -10,7 +10,7 @@ from collections import Counter
 import Levenshtein as Lev
 import tempfile
 import csv
-    
+import os
     
 class SequenceAlignment():
     def __init__(self, fasta_file):
@@ -268,7 +268,15 @@ class PrimerFinder():
         #print("Entropy Peaks: ")
         #print(peaks)
         ent_inds = np.asarray([i[0] for i in entropies.items()]).flatten()
-        with open('entropy_diagram.csv', mode='a') as entropy_file:
+        #if os.path.exists('entropy_diagram.csv'):
+            #modifyFile = 'a'
+        #else:
+            #modifyFile = 'w'
+        modifyFile = 'w'
+        script_dir = os.path.dirname(__file__) #<-- absolute dir the script is in
+        rel_path = "templates\\entropy\\entropy_diagram.csv"
+        abs_file_path = os.path.join(script_dir, rel_path)
+        with open(abs_file_path, mode=modifyFile) as entropy_file:
            entropy_writer = csv.writer(entropy_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
            for i in ent_inds[peaks]:
                entropy_writer.writerow([entropies[i][0]])
@@ -300,10 +308,10 @@ class PrimerFinder():
             #print(primer_indices)
             for i in primer_indices:
                 #print(entropy_peaks[i][1],'\n')
-                print('i:',i,' ','entropy_peaks: ',entropy_peaks[i][0],'\n')
+                #print('i:',i,' ','entropy_peaks: ',entropy_peaks[i][0],'\n')
                 primer = Primer(seq=entropy_peaks[i][1], pos=i, na_conc=na_conc)
                 primers.append(primer)
-            print('\n','\n')
+            #print('\n','\n')
         #print(primers)
         return primers
 
