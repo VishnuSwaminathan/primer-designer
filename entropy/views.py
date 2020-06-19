@@ -7,8 +7,9 @@ import io
 import logging
 #import pdb; pdb.set_trace()
 
+
 # Get an instance of a logger
-logger = logging.getLogger(__name__)
+#logger = logging.getLogger(__name__)
 
 """
 def index(request):
@@ -19,17 +20,20 @@ class PrimerFinderView(FormView):
     template_name = "entropy/index.html"
     form_class = PrimerForm
     action = "primer_finder"
-    success_url="/"
+    success_url="/results/"
 
     #TODO double check that I need this. It might be for ajax
+    '''
     def get_context_data(self, *args, **kwargs):
         context = super(PrimerFinderView, self).get_context_data(**kwargs)
         context['action'] = self.action
         return context
+    '''
 
     def form_invalid(self, form):
         return super().form_invalid(form)
-
+    
+    
     def form_valid(self, form):
         form_data = form.cleaned_data
         msa_bytesIO = self.request.FILES['msa_file'].file
@@ -53,19 +57,18 @@ class PrimerFinderView(FormView):
                                                   omit_gc_clamp=form_data['filter_gc_clamp'],
                                                   max_edit_dist=form_data['max_edit_distance'],
                                                   outgroup=outgroup_file)
-        
-        try: 
-            primepairs
-        except NameError: 
-            return render(self.request, 'entropy/erroReturn.html')
-        else:
-            return render(self.request, 'entropy/index.html', {'primerpairs': primerpairs, 'action': self.action })
         #print(primerpairs)
-        #if primepairs is None:
-         #   return render(self.request, 'entropy/index.html', {'primerpairs': None, 'action': self.action })
+        #return primer_results().
+        return render(self.request, 'entropy/index.html', {'primerpairs': primerpairs, 'action': self.action })
+        
+        
+    #def primer_results(self, *args, **kwargs):
+        
+        # try: 
+           # primepairs
+        #except NameError: 
+            #return render(self.request, 'entropy/erroReturn.html')
+            #print('nothing')
         #else:
-        #if primepairs:
-         #   return render(self.request, 'entropy/index.html', {'primerpairs': primerpairs, 'action': self.action })
-        #elif not primepairs:
-       #     return render(self.request, 'entropy/index.html')
-        #return render(self.request, 'entropy/index.html')
+            #return render(self.request, 'entropy/index.html', {'primerpairs': primerpairs, 'action': self.action })
+        

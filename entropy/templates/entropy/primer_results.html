@@ -1,27 +1,37 @@
 {% if primerpairs %}
-  <table class="table">
-    <thead>
-      <tr>
-        <th scope="col">Label</th>
-        <th scope="col">Sequence</th>
-        <th scope="col">Tm Range</th>
-        <th scope="col">GC Content</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for pair in primerpairs %}
-      <tr class="{% if forloop.counter|divisibleby:2 %} light {% else %} dark {% endif %}">
-        <td>Forward {{ forloop.counter }}</td>
-        <td>{{ pair.forward.seq }}</td>
-        <td>{{ pair.forward.melting_temps }}</td>
-        <td>{{ pair.forward.gc }}</td>
-      </tr>
-      <tr class="{% if forloop.counter|divisibleby:2 %} light {% else %} dark {% endif %}">
-        <td>Reverse {{ forloop.counter }}</td>
-        <td>{{ pair.reverse.seq }}</td>
-        <td>{{ pair.reverse.melting_temps }}</td>
-        <td>{{ pair.reverse.gc }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
+<script type="text/javascript" src="{% static 'entropy/d3js_results.js' %}"></script>
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <div id="entropy_diagram"></div>
+        </div>
+        <div class="col">
+            <thead>
+              <tr>
+                <th scope="col">Label</th>
+                <th scope="col">Sequence</th>
+                <th scope="col">Tm Range</th>
+                <th scope="col">GC Content</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for pair in primerpairs %}
+              <tr class="{% if forloop.counter|divisibleby:2 %} light {% else %} dark {% endif %}">
+                <td>Forward {{ forloop.counter }}</td>
+                <td>{{ pair.forward.seq }}</td>
+                <td>{{ pair.forward.melting_temps }}</td>
+                <td>{{ pair.forward.gc }}</td>
+              </tr>
+              <tr class="{% if forloop.counter|divisibleby:2 %} light {% else %} dark {% endif %}">
+                <td>Reverse {{ forloop.counter }}</td>
+                <td>{{ pair.reverse.seq }}</td>
+                <td>{{ pair.reverse.melting_temps }}</td>
+                <td>{{ pair.reverse.gc }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+        </div>
+    </div>
+</div>
+
 {% endif %}

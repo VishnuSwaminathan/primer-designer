@@ -7,13 +7,13 @@
     </div>
   </div>
   <div class="row">
-    <div class="col-12">
+    <div class="col-12" id="results">
       {% if primerpairs %}
         {% include 'entropy/primer_results.html' %}
-      {% elif not primepairs %}
-      <div class="container">
-        {% include 'entropy/errorReturn.html' %}
-      </div>
+      {% else %}
+        <div class="container">
+          {% include 'entropy/partial_parameter_form.html' %}
+        </div>
       {% endif %}
     </div>
   </div>

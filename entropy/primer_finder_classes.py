@@ -9,7 +9,9 @@ from math import log
 from collections import Counter
 import Levenshtein as Lev
 import tempfile
-
+import csv
+    
+    
 class SequenceAlignment():
     def __init__(self, fasta_file):
         self.data = self._fasta_to_df(fasta_file)
@@ -211,7 +213,16 @@ class PrimerFinder():
         for i in alignment:
             out += nuc_code_converter["".join(sorted(list(set(alignment[i]))))]
         return out
-
+    
+    
+#- put each sequence of the input sequence alignment into a dataframe (kind of like a table or matrix)
+#- remove any positions in the alignment with null values from considetation
+#- make an empty list 
+#- start at the first position of the alignment
+#-  slide a window of size primer_length down the alignment
+#- for each position of the sliding window, calculate the entropy at that position using the scipy entropy function
+#- save those values to the list
+#- return the list
     def _kmer_entropy(self, df, k):
         #have to remove columns with NaN.
         start = 0
@@ -238,8 +249,12 @@ class PrimerFinder():
 
             start += 1
             end += 1
-
+        #print("Entropies: ")
+        #print(entropies)
         return entropies
+
+    #def _kmer_entropy_export(self, entropies):
+       
 
     def _find_min_entropy_positions(self, entropies, show_plot=False):
         #ent_vals = np.asarray([i[0] for i in entropies]).flatten()
@@ -250,7 +265,13 @@ class PrimerFinder():
             plt.plot(peaks, ent_vals[peaks], "x")
             plt.show()
         #return peaks
+        #print("Entropy Peaks: ")
+        #print(peaks)
         ent_inds = np.asarray([i[0] for i in entropies.items()]).flatten()
+        with open('entropy_diagram.csv', mode='a') as entropy_file:
+           entropy_writer = csv.writer(entropy_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+           for i in ent_inds[peaks]:
+               entropy_writer.writerow([entropies[i][0]])
         return ent_inds[peaks]
 
     def _outgroup_distance(self,primer, outgroup):
@@ -273,10 +294,17 @@ class PrimerFinder():
         for k in range(min_primer_length, max_primer_length):
             entropy_peaks = self._kmer_entropy(sequence_alignment.data, k)
             primer_indices = self._find_min_entropy_positions(entropy_peaks, show_plot=False)
+            #print("Entropy Peaks (i.e. _kmer_entropy): ",k)
+            #print(entropy_peaks)
+            #print("Entropy Primer Indices (i.e. _find_min_entropy_positions): ",k)
+            #print(primer_indices)
             for i in primer_indices:
+                #print(entropy_peaks[i][1],'\n')
+                print('i:',i,' ','entropy_peaks: ',entropy_peaks[i][0],'\n')
                 primer = Primer(seq=entropy_peaks[i][1], pos=i, na_conc=na_conc)
                 primers.append(primer)
-        print(primers)
+            print('\n','\n')
+        #print(primers)
         return primers
 
     def identify_pairs(self, primers,
@@ -326,5 +354,5 @@ class PrimerFinder():
                 if f_dist < max_edit_dist or r_dist < max_edit_dist:
                     selected.append(pair)
             pairs = selected
-        print(pairs)        
+        #print(pairs)        
         return pairs

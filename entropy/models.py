@@ -22,3 +22,5 @@ class UserInput(models.Model):
     max_edit_distance = models.IntegerField()
     outgroup = models.TextField()
     outgroup_file = models.FileField()
+
+    # # # # # # # # # # # # #
