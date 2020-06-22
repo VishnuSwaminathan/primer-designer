@@ -1,4 +1,4 @@
-<script>
+<script type="text/javascript" src="{{STATIC_URL}}/static/app/d3js_results.js"></script>
 
     // set the dimensions and margins of the graph
     var margin = {top: 10, right: 30, bottom: 30, left: 60},

@@ -11,6 +11,7 @@ import Levenshtein as Lev
 import tempfile
 import csv
 import os
+import cProfilelog
     
 class SequenceAlignment():
     def __init__(self, fasta_file):
