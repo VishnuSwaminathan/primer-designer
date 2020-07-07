@@ -11,8 +11,11 @@ import Levenshtein as Lev
 import tempfile
 import csv
 import os
-import cProfilelog
-    
+#import cProfilelog
+import matplotlib, random
+import plotly.graph_objects as go
+from plotly.io._html import to_html
+
 class SequenceAlignment():
     def __init__(self, fasta_file):
         self.data = self._fasta_to_df(fasta_file)
@@ -32,7 +35,7 @@ class SequenceAlignment():
 
 
 class Primer():
-    def __init__(self, seq, pos, na_conc=None):
+    def __init__(self, seq, pos, na_conc=None, entropy=0, entropy_peak=0):
         self.seq = seq
         self.pos = pos
         self.na_conc = na_conc
@@ -46,6 +49,10 @@ class Primer():
         self.good_gc_clamp = False
         self.bad_gc_clamp = False
         self._check_gc_clamps(seq)
+        
+        self.entropy=entropy
+        self.entropy_peak=entropy_peak 
+        
 
     def _get_melting_temp(self, min_gc, max_gc, na_conc):
         min_seq = Counter(min_gc)
@@ -191,6 +198,15 @@ Reverse:
 
 
 class PrimerFinder():
+    
+    ######################
+    def __init__(self):
+       self.entropy_values = None
+       self.entropy_peaks = None
+       self.primer_pairs = None
+       self.sequence_alignment = None
+   ######################
+        
     def _alignment_to_string(self, alignment):
         nuc_code_converter = {
         "A"   :"A",
@@ -236,6 +252,11 @@ class PrimerFinder():
                 break
             #don't use primers over gaps
             if (window=='-').values.any():
+                
+                ######################
+                entropies[start]= (None, None)
+                ######################
+                
                 start += 1
                 end += 1
                 continue
@@ -245,9 +266,9 @@ class PrimerFinder():
                 kmers.append("".join(entry))
             kmer_counts = pd.DataFrame(data=kmers).apply(pd.value_counts)
             kmer_probs = kmer_counts/kmer_counts.sum()
+            
             entr = entropy(kmer_probs)
             entropies[start] = (entr, primer_string)
-
             start += 1
             end += 1
         #print("Entropies: ")
@@ -258,13 +279,29 @@ class PrimerFinder():
        
 
     def _find_min_entropy_positions(self, entropies, show_plot=False):
-        #ent_vals = np.asarray([i[0] for i in entropies]).flatten()
-        ent_vals = np.asarray([i[1][0] for i in entropies.items()]).flatten()
+        
+        ######################
+        #ent_vals = np.asarray([i[1][0] for i in entropies.items()]).flatten()
+        ent_vals = np.asarray([i[1][0] for i in entropies.items()], dtype=np.float64).flatten()
+
+        # lambda expression allows * -1 over np array with None values, whcih otherwise throws type error
+        ######################
+        
         peaks, _ = find_peaks(ent_vals * -1)
-        if show_plot:
-            plt.plot(ent_vals)
-            plt.plot(peaks, ent_vals[peaks], "x")
-            plt.show()
+        
+        ######################
+        #if show_plot:
+            #plt.plot(ent_vals)
+            #plt.plot(peaks, ent_vals[peaks], "x")
+            #plt.show()
+        
+        # peaks, _ = find_peaks(np.array(list(map((lambda i: -1*i if i!=None else i), ent_vals))))
+        ###
+        self.entropy_values = ent_vals
+        self.entropy_peaks = peaks
+        ###
+        ######################
+        
         #return peaks
         #print("Entropy Peaks: ")
         #print(peaks)
@@ -273,14 +310,14 @@ class PrimerFinder():
             #modifyFile = 'a'
         #else:
             #modifyFile = 'w'
-        modifyFile = 'w'
-        script_dir = os.path.dirname(__file__) #<-- absolute dir the script is in
-        rel_path = "templates\\entropy\\entropy_diagram.csv"
-        abs_file_path = os.path.join(script_dir, rel_path)
-        with open(abs_file_path, mode=modifyFile) as entropy_file:
-           entropy_writer = csv.writer(entropy_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-           for i in ent_inds[peaks]:
-               entropy_writer.writerow([entropies[i][0]])
+        #modifyFile = 'w'
+        #script_dir = os.path.dirname(__file__) #<-- absolute dir the script is in
+        #rel_path = "templates\\entropy\\entropy_diagram.csv"
+        #abs_file_path = os.path.join(script_dir, rel_path)
+        #with open(abs_file_path, mode=modifyFile) as entropy_file:
+           #entropy_writer = csv.writer(entropy_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+           #for i in ent_inds[peaks]:
+               #entropy_writer.writerow([entropies[i][0]])
         return ent_inds[peaks]
 
     def _outgroup_distance(self,primer, outgroup):
@@ -299,14 +336,28 @@ class PrimerFinder():
 
     def identify_primers(self, filename, min_primer_length, max_primer_length, na_conc=None):
         sequence_alignment = SequenceAlignment(filename)
+        
+        ######################
+        self.sequence_alignment=sequence_alignment
+        ######################
+        
         primers = []
         for k in range(min_primer_length, max_primer_length):
             entropy_peaks = self._kmer_entropy(sequence_alignment.data, k)
-            primer_indices = self._find_min_entropy_positions(entropy_peaks, show_plot=False)
+            
+            ######################
+            #primer_indices = self._find_min_entropy_positions(entropy_peaks, show_plot=False)
+            ######################
+            
             #print("Entropy Peaks (i.e. _kmer_entropy): ",k)
             #print(entropy_peaks)
             #print("Entropy Primer Indices (i.e. _find_min_entropy_positions): ",k)
             #print(primer_indices)
+            
+            ######################
+            primer_indices = self._find_min_entropy_positions(entropy_peaks, show_plot=True)
+            ######################
+            
             for i in primer_indices:
                 #print(entropy_peaks[i][1],'\n')
                 #print('i:',i,' ','entropy_peaks: ',entropy_peaks[i][0],'\n')
@@ -327,11 +378,28 @@ class PrimerFinder():
                        omit_gc_clamp=True,
                        max_edit_dist=2, outgroup=None):
         #First, filter on attributes.
+        
+        ######################
+        print("amp_min ", amp_min)
+        print("amp_max ", amp_max)
+        print('max deg ', max_degeneracy)
+        print('min_melting_temp ', min_melting_temp)
+        print('max_melting_temp', max_melting_temp)
+        print("MIN GC: ", min_gc)
+        print("MAX GC: ", max_gc)
+        ######################
+        
+        
         filtered = list(filter(lambda primer: primer.degeneracy <= max_degeneracy
                   and primer.melting_temps[1] <= max_melting_temp
                   and primer.melting_temps[0] >= min_melting_temp
                   and primer.gc[0] >= min_gc
                   and primer.gc[1] <= max_gc, primers))
+
+        ######################
+        for p in filtered:
+            print(p)
+        ######################
 
         if select_gc_clamp:
             filtered = list(filter(lambda primer: primer.good_gc_clamp==True, filtered))
@@ -354,6 +422,7 @@ class PrimerFinder():
                 f_dist = 10000
                 r_dist = 10000
                 for seq in outseqs:
+                    #pair.forward & pair.reverse for primer pairs
                     f_current = self._outgroup_distance(pair.forward, seq)
                     r_current = self._outgroup_distance(pair.reverse, seq)
                     if f_current < f_dist:
@@ -363,5 +432,201 @@ class PrimerFinder():
                 if f_dist < max_edit_dist or r_dist < max_edit_dist:
                     selected.append(pair)
             pairs = selected
-        #print(pairs)        
+            
+        ######################
+            ###
+            self.primer_pairs = pairs
+            ###
+        if len(pairs) == 0:
+            pairs = -1
+        ######################    
+            
         return pairs
+
+    ######################
+    
+    def saveCSV(self):
+        modifyFile = 'w'
+        script_dir = os.path.dirname(__file__) #<-- absolute dir the script is in
+        rel_path = "templates\\entropy\\entropy_output.csv"
+        abs_file_path = os.path.join(script_dir, rel_path)
+        with open(abs_file_path, mode=modifyFile, newline='') as entropy_file:
+            fieldnames = ['Sequence', 'Entropy']
+            entropy_writer = csv.DictWriter(entropy_file, fieldnames=fieldnames)
+            for i, val in enumerate(self.entropy_values):
+               entropy_writer.writeheader()
+               entropy_writer.writerow({'Sequence': i, 'Entropy':val})
+    ######################
+    def html_plot(self):
+         #if os.path.exists('entropy_diagram.csv'):
+            #modifyFile = 'a'
+        #else:
+            #modifyFile = 'w'
+        #modifyFile = 'w'
+        #script_dir = os.path.dirname(__file__) #<-- absolute dir the script is in
+        #rel_path = "templates\\entropy\\entropyTxt.txt"
+        #abs_file_path = os.path.join(script_dir, rel_path)
+        #with open(abs_file_path, mode=modifyFile) as entropy_file:
+           #entropy_writer = csv.writer(entropy_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+           #for i in ent_inds[peaks]:
+               #entropy_writer.writerow([entropies[i][0]])
+        #entropyTxt=open(abs_file_path, mode=modifyFile)
+        
+        ######################
+        #get primer_pairs
+        assert self.primer_pairs
+        #y axis is entropy values (MINIMUM entropy values), get's values from function "_find_min_entropy_positions"
+        y = self.entropy_values
+        #print('Min Entropy Values (y): ',*y,sep=", ")
+        #print('\n','\n')
+        #np.arrange => Return evenly spaced values within a given interval
+        #"len(y)" => Return number of items in an object
+        #So x = array with intervals for each entropy value
+        x = np.arange(len(y))
+       # print('Array of Evenly Intervaled Min. Entropy Values (x=', x, '): ',*y,sep=", ")
+        #print('\n','\n')
+    
+        #np.array creates an array
+        #dtype => desired output type for the array, so here it's numpy float64
+        #y_nans => array of min. entropy values (y) of type 64bit float (np.float64)
+        y_nans = np.array(y, dtype=np.float64)
+        #print('Array of min. entropy values of type float (y_nans): ',*y_nans,sep=", ")
+        #print('\n','\n')
+            
+        ######################
+        xy={}
+        for key in x:
+            for value in y:
+                xy[key]=value
+        xAndY={'X': [x], 'Y': [y]}
+        #csvDF=pd.DataFrame.from_dict(xy)
+        #print('x: ',type(x))
+        #print('x: ',type(y_nans))
+        x2 = np.array(x).tolist()
+        y2 = np.array(y_nans).tolist()
+        #print('\n','\n')
+        #print('x2: ',type(x2))
+        #print('y2: ',type(y2))
+        
+        csvDF=pd.DataFrame(y_nans)
+        #csvDF=pd.DataFrame(x, y_nans, index=x)
+        #csvDF.out
+        csvDF.to_csv('entropy-out.csv')
+        ######################
+        
+        #np.nanmax Returns max of an array...or min along an axis. Ignores any NaNs!
+        #primer_height => Max value of the y_nans, divided by 5
+        primer_height = np.nanmax(y_nans)/5
+        #print('Max value from Array of Min. Entropy values, divided by 5 (primer_height): ',primer_height)
+        #print('\n','\n')
+        #primer_y => 
+        primer_y = np.nanmax(y_nans) + primer_height
+        #print('6/5*np.nanmax(y_nans) => (primer_y = np.nanmax(y_nans) + primer_height): ',primer_y)
+        #print('\n','\n')
+
+        #go == plotly graph_objects
+        #go.figure => Create a figure, specificly here "Graph Objects"; this provides precise data validation, and can render/export graphs
+        fig = go.Figure()
+        #fig.add_trace => modifies graph property...here, the func accepts a graph object trace (instance of Scatter), and adds to figure
+        #x=array with intervals for each entropy val, y=min entropy values
+        fig.add_trace(go.Scatter(x=x, y=y,
+                                 mode='lines',
+                                 name='Seq. Entropy'))
+        #Basically sets the min points of entropy=good for us, what we want tof ind
+        fig.add_trace(go.Scatter(x=self.entropy_peaks,
+                                 y=y[self.entropy_peaks],
+                                 mode='markers',
+                                 name='Entropy Minima'))
+
+
+        def f(x):
+            if x=='-':
+                return None
+            else:
+                return 1
+            
+        #print('\n','\n')
+        df = self.sequence_alignment.data.applymap(f)
+        df = df.where(pd.notnull(df), None)
+        #print("df: ","\n",df)
+
+        #print('\n','\n')
+        df = df.where(pd.notnull(df), None)
+        for i, row in df.iterrows():
+            y = [(d - (i+1.1))/7 if d else None for d in row.values]
+            #print("y value @ i=",i," in df.iterrows (and before fig.add_trace): ", y,"\n")
+            fig.add_trace(go.Scatter(
+                x=x,
+                y=y,
+                #orientation='h',
+                mode='lines',
+                showlegend=False,
+            ))
+            #print('\n')
+
+        #print('\n','\n')
+        #min and max vals used for colormap
+        f_min = min([p.forward.pos for p in self.primer_pairs ])
+        #print("f_min for colormap values: ", f_min)
+        f_max = max([p.forward.pos for p in self.primer_pairs ])
+        #print("f_max for colormap values: ", f_max)
+
+        #print('\n','\n')
+        norm = matplotlib.colors.Normalize(vmin=f_min, vmax=f_max)
+        cmap = matplotlib.cm.get_cmap('GnBu')
+        cmap_r = matplotlib.cm.get_cmap('GnBu_r')
+
+        i = 1
+        hex_colors_dic = {}
+        rgb_colors_dic = {}
+        hex_colors_only = []
+        for name, hex in matplotlib.colors.cnames.items():
+            hex_colors_only.append(hex)
+            hex_colors_dic[name] = hex
+            rgb_colors_dic[name] = matplotlib.colors.to_rgb(hex)
+
+        for pair in self.primer_pairs:
+            f = pair.forward
+            r = pair.reverse
+
+            #all primers have same y
+            y = [primer_y, primer_y+primer_height, primer_y+primer_height, primer_y, primer_y]
+
+            #color = matplotlib.colors.to_hex(cmap(norm(f.pos)))
+            color = random.choice(hex_colors_only)
+            anchor_color = random.choice(hex_colors_only)
+
+            #forward primer
+            fig.add_trace(go.Scatter(x=[f.pos, f.pos, f.pos+f.length, f.pos+f.length, f.pos],
+                                    y= y,
+                                    fill='toself',
+                                    text = str(f),
+                                    line=dict(
+                                    color=color,
+                                    width=2),
+                                    fillcolor=color,
+                                    showlegend=False,))
+            #reverse primer
+            fig.add_trace(go.Scatter(x=[r.pos, r.pos, r.pos+r.length, r.pos+r.length, r.pos],
+                                    y = y,
+                                    fill='toself',
+                                    text = str(r),
+                                    line=dict(
+                                    color=color,
+                                    width=2),
+                                    fillcolor=color,
+                                    showlegend=False,))
+            fig.add_trace(go.Scatter(x=np.arange((f.pos+f.pos+f.length)/2, (r.pos+r.pos+r.length)/2),
+                                     y = [(primer_y + primer_y + primer_height)/2] * x.shape[0],
+                                     line=dict(color=anchor_color, width=4, dash='dash'),
+                                     text=str(pair),
+                                     name="Pair {0}".format(i),
+
+                         ))
+            i +=1
+
+
+
+        #fig.show()
+        return to_html(fig, full_html=False)
+    ######################

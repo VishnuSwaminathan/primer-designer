@@ -1,6 +1,20 @@
-{% load static %}
 {% if primerpairs %}
-<script ></script>
+<div class="row">
+  <div class="col-lg-9">
+    {% if plot %}
+    {{ plot|safe }}
+    {% endif %}
+  </div>
+  <div class="col">
+    <p> Todo: allow selection of primers</p>
+    <p> Show their info here.</p>
+  </div>
+  <div class="col">
+      <button><a href="">Download Results</a></button>
+  </div>
+</div>
+
+<table class="table table-striped">
 <thead>
   <tr>
     <th scope="col">Label</th>
@@ -25,5 +39,5 @@
   </tr>
   {% endfor %}
 </tbody>
-
+</table>
 {% endif %}

@@ -18,6 +18,7 @@ STATIC_URL = '/entropy/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
+TEMPLATE_URL = '/entropy/templates/entropy/'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
